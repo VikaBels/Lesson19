@@ -4,22 +4,27 @@ import android.content.Intent
 import android.content.res.Resources
 import android.os.AsyncTask
 import android.text.Editable
+import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.lesson19.BROADCAST_ACTION_SEND_TEXT
 import com.example.lesson19.EXTRA_RESULT_TEXT
+import com.example.lesson19.R
 import com.example.lesson19.models.App.Companion.getInstanceApp
 import okhttp3.*
 import java.io.IOException
+import java.lang.Exception
 
 class CommunicatingWithServerTask(
-    private val textParameter: Editable?
+    private val textParameter: String?
 ) : AsyncTask<Void?, String?, Void?>() {
     companion object {
         const val URL_WITHOUT_PARAMETER =
             "https://pub.zame-dev.org/senla-training-addition/lesson-19.php?param="
-        const val NAME_RESOURCE_ERROR = "txt_error_no_internet"
-        const val DEFAULT_TYPE_RESOURCE_ERROR = "string"
+        const val TAG_INTERRUPTED_EXCEPTION = "CommunicatingWithTask"
+        const val MESSAGE_INTERRUPTED_EXCEPTION = "Server request error"
     }
+
+    private val client = OkHttpClient()
 
     override fun onProgressUpdate(vararg values: String?) {
         super.onProgressUpdate(*values)
@@ -30,7 +35,7 @@ class CommunicatingWithServerTask(
         try {
             getResponseFromServer()
         } catch (ex: InterruptedException) {
-            println(ex)
+            Log.e(TAG_INTERRUPTED_EXCEPTION, MESSAGE_INTERRUPTED_EXCEPTION, ex)
         }
         return null
     }
@@ -43,7 +48,7 @@ class CommunicatingWithServerTask(
 
     private fun getResponseFromServer() {
         val resultServerText: String? = try {
-            val response = OkHttpClient().newCall(getRequest()).execute()
+            val response = client.newCall(getRequest()).execute()
 
             if (response.isSuccessful) {
                 response.body()?.string()
@@ -52,13 +57,9 @@ class CommunicatingWithServerTask(
             }
 
         } catch (e: IOException) {
-            val resource: Resources = getInstanceApp().resources
+            val resource = getInstanceApp().resources
             resource.getString(
-                resource.getIdentifier(
-                    NAME_RESOURCE_ERROR,
-                    DEFAULT_TYPE_RESOURCE_ERROR,
-                    getInstanceApp().packageName
-                )
+                R.string.txt_error_no_internet
             )
         }
 
@@ -66,10 +67,7 @@ class CommunicatingWithServerTask(
     }
 
     private fun getRequest(): Request {
-        val urlWithParameter = buildString {
-            append(URL_WITHOUT_PARAMETER)
-            append(textParameter)
-        }
+        val urlWithParameter = "$URL_WITHOUT_PARAMETER$textParameter"
 
         return Request.Builder()
             .url(urlWithParameter)

@@ -2,9 +2,6 @@
     <string name="app_name">Lesson19</string>
     <string name="txt_error_no_internet">Sorry,no internet</string>
 
-    <string name="title_progress_dialog">Request is being sent</string>
-    <string name="message_progress_dialog">Please, wait</string>
-
     <string name="txt_btn_main_activity">Send request</string>
     <string name="hint_text_view">Response from the server</string>
     <string name="hint_edit_text">Enter text you want to send</string>
